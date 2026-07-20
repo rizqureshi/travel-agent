@@ -8,8 +8,8 @@ def fetch_google_flights(
     arrival_id: str, 
     outbound_date: str, 
     return_date: str = None,
-    travel_class: int = 1,  # Added parameter
-    adults: int = 1         # Added parameter
+    travel_class: int = 1,
+    adults: int = 1
 ) -> str:
     """
     Queries live flight options via SerpApi Google Flights engine.
@@ -17,7 +17,7 @@ def fetch_google_flights(
         departure_id: 3-letter uppercase IATA code for departure airport (e.g., 'YYZ')
         arrival_id: 3-letter uppercase IATA code for destination airport (e.g., 'LHR')
         outbound_date: Departure date in YYYY-MM-DD format.
-        return_date: Optional return date in YYYY-MM-DD format for round trips.
+        return_date: Optional return date in YYYY-MM-DD format for round trips. Pass None if one-way.
         travel_class: 1 for Economy, 2 for Premium Economy, 3 for Business, 4 for First.
         adults: Number of adult passengers.
     """
@@ -31,12 +31,14 @@ def fetch_google_flights(
         "departure_id": departure_id,
         "arrival_id": arrival_id,
         "outbound_date": outbound_date,
-        "travel_class": travel_class, # Pass to API
-        "adults": adults,             # Pass to API
+        "travel_class": travel_class,
+        "adults": adults,
         "currency": "CAD",
         "api_key": api_key
     }
-    if return_date:
+    
+    # Only attach return_date if it is provided
+    if return_date and return_date != "None":
         params["return_date"] = return_date
 
     try:
