@@ -1,12 +1,10 @@
 import os
-# 1. Import the dotenv loader
+from datetime import datetime
 from dotenv import load_dotenv
 
-# 2. Fire it up immediately before importing internal modules
 load_dotenv()
 
-# 3. Now it is safe to import agent logic
-from langchain_core.messages import HumanMessage
+from langchain_core.messages import HumanMessage, SystemMessage
 from agent import travel_app
 
 def check_environment():
@@ -31,15 +29,36 @@ def run_agent():
     
     user_prompt = "Find me the business class flights from Toronto to London leaving on September 15 and returning on September 29."
     
+    # 1. Grab the current system date dynamically
+    today = datetime.now().strftime("%Y-%m-%d")
+    
+    # 2. Inject a SystemMessage to ground the LLM's timeline
     initial_input = {
-        "messages": [HumanMessage(content=user_prompt)]
+        "messages": [
+            SystemMessage(content=f"You are a helpful travel assistant. Today's date is {today}. Use this to determine the correct year for any flight requests."),
+            HumanMessage(content=user_prompt)
+        ]
     }
 
     # Run execution engine
     output = travel_app.invoke(initial_input)
     
     print("\n--- Agent Response ---")
-    print(output["messages"][-1].content)
+    # Extract the raw content
+    response_content = output["messages"][-1].content
+    
+    # 1. If the model returned a simple string, print it directly
+    if isinstance(response_content, str):
+        print(response_content)
+        
+    # 2. If the model returned a list of content blocks, extract the text
+    elif isinstance(response_content, list):
+        for block in response_content:
+            if isinstance(block, dict) and block.get("type") == "text":
+                print(block.get("text"))
+            # Fallback just in case a block is a raw string
+            elif isinstance(block, str):
+                print(block)
 
 if __name__ == "__main__":
     run_agent()
