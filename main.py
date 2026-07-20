@@ -29,7 +29,7 @@ def run_agent():
 
     print("Initializing Flight Engine Search Agent...")
     
-    user_prompt = "Find me the cheapest flights from Toronto to London leaving on September 15 and returning on September 29."
+    user_prompt = "Find me the business class flights from Toronto to London leaving on September 15 and returning on September 29."
     
     initial_input = {
         "messages": [HumanMessage(content=user_prompt)]

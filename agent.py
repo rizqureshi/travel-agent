@@ -14,7 +14,7 @@ class TravelAgentState(TypedDict):
     flight_results: List[Dict[str, Any]]
 
 # 2. Initialization 
-llm = ChatGoogleGenerativeAI(model="gemini-1.5-pro", temperature=0)
+llm = ChatGoogleGenerativeAI(model="gemini-3.1-flash-lite", temperature=0)
 llm_with_tools = llm.bind_tools([fetch_google_flights])
 
 # 3. Graph Nodes
@@ -53,7 +53,7 @@ workflow.add_conditional_edges(
     should_continue,
     {
         "tools": "tools",
-        "end": END
+        END: END
     }
 )
 workflow.add_edge("tools", "agent")
