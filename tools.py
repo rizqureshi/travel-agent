@@ -7,7 +7,9 @@ def fetch_google_flights(
     departure_id: str, 
     arrival_id: str, 
     outbound_date: str, 
-    return_date: str = None
+    return_date: str = None,
+    travel_class: int = 1,  # Added parameter
+    adults: int = 1         # Added parameter
 ) -> str:
     """
     Queries live flight options via SerpApi Google Flights engine.
@@ -16,10 +18,12 @@ def fetch_google_flights(
         arrival_id: 3-letter uppercase IATA code for destination airport (e.g., 'LHR')
         outbound_date: Departure date in YYYY-MM-DD format.
         return_date: Optional return date in YYYY-MM-DD format for round trips.
+        travel_class: 1 for Economy, 2 for Premium Economy, 3 for Business, 4 for First.
+        adults: Number of adult passengers.
     """
     api_key = os.getenv("SERPAPI_API_KEY")
     if not api_key:
-        return "Error: Missing SERPAPI_API_KEY framework environment variable."
+        return "Error: Missing SERPAPI_API_KEY environment variable."
 
     url = "https://serpapi.com/search"
     params = {
@@ -27,6 +31,8 @@ def fetch_google_flights(
         "departure_id": departure_id,
         "arrival_id": arrival_id,
         "outbound_date": outbound_date,
+        "travel_class": travel_class, # Pass to API
+        "adults": adults,             # Pass to API
         "currency": "CAD",
         "api_key": api_key
     }
