@@ -1,0 +1,11 @@
+# Python caching
+__pycache__/
+*.py[cod]
+
+# Virtual environment
+.venv/
+venv/
+ENV/
+
+# Local configuration & secrets
+.env
