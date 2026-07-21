@@ -1,7 +1,7 @@
 from typing import Annotated, TypedDict, List, Dict, Any
 from langgraph.graph import StateGraph, START, END
 from langgraph.graph.message import add_messages
-from langchain_core.messages import BaseMessage
+from langchain_core.messages import BaseMessage, ToolMessage
 from langchain_google_genai import ChatGoogleGenerativeAI
 
 # Import the tool we created in tools.py
@@ -30,7 +30,9 @@ def execute_tools(state: TravelAgentState):
     for tool_call in last_message.tool_calls:
         if tool_call["name"] == "fetch_google_flights":
             res = fetch_google_flights.invoke(tool_call["args"])
-            tool_outputs.append(res)
+            tool_outputs.append(
+                ToolMessage(content=res, tool_call_id=tool_call["id"], name=tool_call["name"])
+            )
             
     return {"messages": tool_outputs}
 
