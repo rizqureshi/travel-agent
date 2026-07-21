@@ -12,36 +12,37 @@ st.set_page_config(page_title="AI Travel Agent", page_icon="✈️")
 st.title("✈️ Autonomous Flight Booker")
 st.markdown("Enter your itinerary below, and the agent will dynamically search live airline data.")
 
-with st.form("flight_form"):
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        origin = st.text_input("Departure City or Airport Code", value="Toronto (YYZ)")
-        departure_date = st.date_input("Leaving Date")
-        
-        class_options = {
-            "Economy": 1, 
-            "Premium Economy": 2, 
-            "Business": 3, 
-            "First Class": 4
-        }
-        selected_class = st.selectbox("Cabin Class", options=class_options.keys())
+# Removed the 'with st.form("flight_form"):' wrapper so widgets can instantly interact
+col1, col2 = st.columns(2)
 
-    with col2:
-        destination = st.text_input("Destination City or Airport Code", value="London (LHR)")
+with col1:
+    origin = st.text_input("Departure City or Airport Code", value="Toronto (YYZ)")
+    departure_date = st.date_input("Leaving Date")
+    
+    class_options = {
+        "Economy": 1, 
+        "Premium Economy": 2, 
+        "Business": 3, 
+        "First Class": 4
+    }
+    selected_class = st.selectbox("Cabin Class", options=class_options.keys())
+
+with col2:
+    destination = st.text_input("Destination City or Airport Code", value="London (LHR)")
+    
+    # --- Checkbox to toggle one-way vs round-trip ---
+    is_one_way = st.checkbox("One-way trip (no return date)")
+    
+    # This will now instantly trigger a UI update when clicked
+    if not is_one_way:
+        return_date = st.date_input("Returning Date")
+    else:
+        return_date = None
         
-        # --- Checkbox to toggle one-way vs round-trip ---
-        is_one_way = st.checkbox("One-way trip (no return date)")
-        
-        # Only show return date picker if it's NOT a one-way trip
-        if not is_one_way:
-            return_date = st.date_input("Returning Date")
-        else:
-            return_date = None
-            
-        adults = st.number_input("Number of Travelers", min_value=1, max_value=9, value=1)
-        
-    submit = st.form_submit_button("Search Flights")
+    adults = st.number_input("Number of Travelers", min_value=1, max_value=9, value=1)
+
+# Replaced the form submit button with a standard button
+submit = st.button("Search Flights", type="primary")
 
 if submit:
     if not os.getenv("GOOGLE_API_KEY") or not os.getenv("SERPAPI_API_KEY"):
@@ -54,7 +55,6 @@ if submit:
 
     with st.spinner("Agent is searching live databases..."):
         
-        # Dynamically phrase prompt based on trip type
         if is_one_way:
             prompt = (
                 f"Find the cheapest one-way flights from {origin} to {destination}. "
