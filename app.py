@@ -1,12 +1,32 @@
 import os
+import re
 import streamlit as st
+import pandas as pd
 from datetime import datetime
 from dotenv import load_dotenv
 
 load_dotenv()
 
-from langchain_core.messages import HumanMessage, SystemMessage
+from langchain_core.messages import HumanMessage, SystemMessage, ToolMessage
 from agent import travel_app
+
+FARE_LINE_RE = re.compile(
+    r"^- (?P<label>\S.*?): \$(?P<price>[\d.]+)(?P<original> \(originally requested\))?$"
+)
+
+
+def parse_flexible_fare_table(text: str):
+    """Turn fetch_flexible_dates' plain-text summary into a DataFrame for charting."""
+    rows = []
+    for line in text.splitlines():
+        match = FARE_LINE_RE.match(line.strip())
+        if match:
+            rows.append({
+                "Dates": match.group("label"),
+                "Price (CAD)": float(match.group("price")),
+                "Selected": bool(match.group("original")),
+            })
+    return pd.DataFrame(rows) if rows else None
 
 st.set_page_config(page_title="AI Travel Agent", page_icon="✈️")
 st.title("✈️ Autonomous Flight Booker")
@@ -94,8 +114,13 @@ if submit:
         output = travel_app.invoke(initial_input)
         response_content = output["messages"][-1].content
 
+        flexible_fare_df = None
+        for message in output["messages"]:
+            if isinstance(message, ToolMessage) and message.name == "fetch_flexible_dates":
+                flexible_fare_df = parse_flexible_fare_table(message.content)
+
         st.subheader("Agent Findings")
-        
+
         if isinstance(response_content, str):
             st.markdown(response_content)
         elif isinstance(response_content, list):
@@ -104,3 +129,8 @@ if submit:
                     st.markdown(block.get("text"))
                 elif isinstance(block, str):
                     st.markdown(block)
+
+        if flexible_fare_df is not None:
+            st.subheader("Nearby Date Fares")
+            st.bar_chart(flexible_fare_df.set_index("Dates")["Price (CAD)"])
+            st.dataframe(flexible_fare_df, hide_index=True, use_container_width=True)
