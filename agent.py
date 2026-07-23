@@ -4,8 +4,11 @@ from langgraph.graph.message import add_messages
 from langchain_core.messages import BaseMessage, ToolMessage
 from langchain_google_genai import ChatGoogleGenerativeAI
 
-# Import the tool we created in tools.py
-from tools import fetch_google_flights
+# Import the tools we created in tools.py
+from tools import fetch_google_flights, fetch_flexible_dates
+
+TOOLS = [fetch_google_flights, fetch_flexible_dates]
+TOOLS_BY_NAME = {t.name: t for t in TOOLS}
 
 # 1. State Definition
 class TravelAgentState(TypedDict):
@@ -13,9 +16,9 @@ class TravelAgentState(TypedDict):
     search_params: Dict[str, Any]
     flight_results: List[Dict[str, Any]]
 
-# 2. Initialization 
+# 2. Initialization
 llm = ChatGoogleGenerativeAI(model="gemini-3.1-flash-lite", temperature=0)
-llm_with_tools = llm.bind_tools([fetch_google_flights])
+llm_with_tools = llm.bind_tools(TOOLS)
 
 # 3. Graph Nodes
 def call_agent_router(state: TravelAgentState):
@@ -28,11 +31,14 @@ def execute_tools(state: TravelAgentState):
     tool_outputs = []
     
     for tool_call in last_message.tool_calls:
-        if tool_call["name"] == "fetch_google_flights":
-            res = fetch_google_flights.invoke(tool_call["args"])
-            tool_outputs.append(
-                ToolMessage(content=res, tool_call_id=tool_call["id"], name=tool_call["name"])
-            )
+        selected_tool = TOOLS_BY_NAME.get(tool_call["name"])
+        if selected_tool:
+            res = selected_tool.invoke(tool_call["args"])
+        else:
+            res = f"Error: unknown tool '{tool_call['name']}'."
+        tool_outputs.append(
+            ToolMessage(content=res, tool_call_id=tool_call["id"], name=tool_call["name"])
+        )
             
     return {"messages": tool_outputs}
 

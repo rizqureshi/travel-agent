@@ -41,6 +41,11 @@ with col2:
         
     adults = st.number_input("Number of Travelers", min_value=1, max_value=9, value=1)
 
+check_flexible_dates = st.checkbox(
+    "Also check ±2 days around my dates for cheaper fares",
+    help="Runs extra searches on nearby dates and reports if shifting your trip would be cheaper."
+)
+
 # Replaced the form submit button with a standard button
 submit = st.button("Search Flights", type="primary")
 
@@ -69,7 +74,14 @@ if submit:
                 f"There are {adults} passengers flying in {selected_class} class. "
                 f"Map the travel class to the correct integer constraint."
             )
-        
+
+        if check_flexible_dates:
+            prompt += (
+                " After that, also call fetch_flexible_dates with the same route, class, and "
+                "passenger count to check fares 2 days before and after my date(s), and tell me "
+                "whether shifting my trip would save money."
+            )
+
         today = datetime.now().strftime("%Y-%m-%d")
         
         initial_input = {
