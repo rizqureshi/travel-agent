@@ -133,4 +133,4 @@ if submit:
         if flexible_fare_df is not None:
             st.subheader("Nearby Date Fares")
             st.bar_chart(flexible_fare_df.set_index("Dates")["Price (CAD)"])
-            st.dataframe(flexible_fare_df, hide_index=True, use_container_width=True)
+            st.dataframe(flexible_fare_df, hide_index=True, width="stretch")
